@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <script src="js/bootstrap.min.js"></script>
+    <style>
+        .avatar-container {
+        }
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 32px;
+        }
+
+        .conversation {
+            display: flex;
+        }
+
+        .input-container {
+            bottom: 1rem;
+        }
+    </style>
+    <style>
+        /* ===== Scrollbar CSS ===== */
+        /* Firefox */
+        * {
+            scrollbar-width: auto;
+            scrollbar-color: #0d6efd #ffffff;
+        }
+
+        /* Chrome, Edge, and Safari */
+        *::-webkit-scrollbar {
+            width: 12px;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #ffffff;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background-color: #0d6efd;
+            border-radius: 10px;
+            border: 3px none #ffffff;
+        }
+    </style>
+    <script src="js/TTSHelper.js"></script>
+    <script src="js/WordsSpliter.js"></script>
+</head>
+<body>
+<div class="container pt-3 d-flex flex-column vh-100">
+    <div class="content-container flex-grow-1">
+        <!-- 你 -->
+        <div class="d-none you conversation mb-3 p-3">
+            <div class="avatar-container pe-3 d-inline">
+                <div class="avatar bg-primary rounded-3">你</div>
+            </div>
+            <div class="content flex-grow-1 border rounded-3 p-3">
+                立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了
+            </div>
+        </div>
+        <!-- AI -->
+        <div class="d-none conversation ai mb-3 p-3">
+            <div class="content flex-grow-1 border rounded-3 p-3">
+                立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了立刻大师傅和管理空手道解放了
+            </div>
+            <div class="avatar-container ps-3 d-inline">
+                <div class="avatar bg-danger rounded-3">AI</div>
+            </div>
+        </div>
+    </div>
+    <div class="input-container d-flex position-sticky">
+        <textarea class="form-control" style="resize: none;" rows="1"
+                  placeholder="enter 发送 ; shift + enter 换行"></textarea>
+        <button class="btn btn-primary flex-shrink-0 ms-3" onclick="sendLogic()">发送</button>
+        <button disabled class="stop-btn btn btn-primary flex-shrink-0 ms-3" onclick="stop()">停止</button>
+    </div>
+</div>
+<script>
+    const inpContainer = document.querySelector('.input-container');
+    const textarea = document.querySelector('.input-container textarea');
+    const you = document.querySelector('.you');
+    const ai = document.querySelector('.ai');
+    const contentContainer = document.querySelector('.content-container');
+    const sendBtn = document.querySelector('.btn.btn-primary');
+    const stopBtn = document.querySelector('.stop-btn');
+
+    let currentMessage = you;
+
+    const ws = new WebSocket('ws://127.0.0.1/chat');
+    const ttsHelper = new TTSHelper('js/ttsWorker.js', 'ws://127.0.0.1/tts');
+    const wordsSpliter = new WordsSpliter(text => {
+        ttsHelper.play(text);
+    });
+
+
+    ws.addEventListener('open', e => {
+        console.log('ws open');
+    });
+
+    ws.addEventListener('message', e => {
+        const data = JSON.parse(e.data);
+        // console.log(data);
+        const container = currentMessage.querySelector('.content');
+        switch (data.status) {
+            case 1:
+                container.textContent = data.content;
+                wordsSpliter.processWords(data.content);
+                break;
+            case 2:
+                container.innerHTML = data.html;
+                textarea.disabled = false;
+                sendBtn.disabled = false;
+                stopBtn.disabled = false;
+                textarea.focus();
+                wordsSpliter.processWords(data.content);
+                wordsSpliter.over(data.content);
+                break;
+            default:
+                break;
+        }
+    });
+
+    inpContainer.addEventListener('keyup', async e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            await sendLogic();
+        }
+    }, true);
+
+    textarea.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            console.log('enter');
+            e.preventDefault();
+        }
+    });
+
+    async function sendLogic() {
+        console.log('send');
+        // 将自己写的内容插入到页面中
+        const y = you.cloneNode(true);
+        y.classList.remove('d-none');
+        y.querySelector('.content').innerHTML = textarea.value.replace(/\n/g, '<br/>');
+        contentContainer.insertBefore(y, currentMessage);
+        const message = textarea.value;
+        textarea.value = '';
+        currentMessage = y;
+
+
+        // 插入ai
+        const a = ai.cloneNode(true);
+        a.classList.remove('d-none');
+        const content = a.querySelector('.content');
+        content.textContent = '';
+        contentContainer.insertBefore(a, currentMessage);
+        currentMessage = a;
+
+
+        // 发送问题给服务器
+        ws.send(JSON.stringify({
+            type: 0,
+            message: 'none',
+            data: message
+        }));
+
+        // 禁用发送按钮和输入框
+        textarea.disabled = true;
+        sendBtn.disabled = true;
+    }
+
+    async function stop() {
+        await ttsHelper.stop();
+        stopBtn.disabled = true;
+    }
+</script>
+</body>
+</html>

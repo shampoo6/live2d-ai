@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        .reply {
+            width: 500px;
+            padding: 32px;
+            color: #fff;
+            background-color: #000;
+            border-radius: 16px;
+            margin: 16px 0;
+        }
+
+        .reply:nth-child(2n) {
+            background-color: grey;
+        }
+    </style>
+</head>
+<body>
+<textarea id="input" rows="4" style="width: 500px"></textarea>
+<button onclick="send()">发送</button>
+<div id="output">
+</div>
+</body>
+<script src="./js/WS.js"></script>
+<script src="./js/WSRequest.js"></script>
+<script src="./js/TTSHelper.js"></script>
+<script>
+    const textarea = document.querySelector('textarea');
+    const output = document.querySelector('#output');
+    const btn = document.querySelector('button');
+    let speechTemp = '';
+    let speechQueue = [];
+
+    const ttsHelper = new TTSHelper();
+
+    const ws = new WS('ws://127.0.0.1/chat');
+    ws.on('open', e => {
+        // ws.send(WSRequest.build('init'));
+    });
+
+    ws.on('ready', e => {
+        console.log('准备完毕，可以发送消息了');
+    });
+
+    ws.on('message', e => {
+        // console.log(e);
+        if (e.type !== undefined) {
+            const alls = output.querySelectorAll('.reply');
+            const div = alls[alls.length - 1];
+            switch (e.type) {
+                case 'reply':
+                    appendText(div.textContent, e.data);
+                    div.textContent = e.data;
+                    break;
+                case 'replyOver':
+                    // div = document.createElement('div');
+                    // div.className = 'reply';
+                    // output.appendChild(div);
+                    btn.disabled = false;
+                    // ttsHelper.play(div.textContent);
+                    break;
+            }
+        }
+    });
+
+    function send() {
+        let div = document.createElement('div');
+        div.className = 'reply';
+        div.textContent = textarea.value;
+        output.appendChild(div);
+        ws.send(WSRequest.build('chat', textarea.value));
+        textarea.value = '';
+        speechTemp = '';
+        speechQueue = [];
+        btn.disabled = true;
+
+        div = document.createElement('div');
+        div.className = 'reply';
+        output.appendChild(div);
+
+
+        let timer = setInterval(() => {
+            (async () => {
+                while (speechQueue.length > 0) {
+                    if (timer) {
+                        clearInterval(timer);
+                        timer = undefined;
+                    }
+                    const words = speechQueue.shift();
+                    await ttsHelper.play(words);
+                }
+            })();
+        }, 100);
+    }
+
+    function appendText(oldText, newText) {
+        // console.log('oldText: ', oldText);
+        // console.log('newText: ', newText);
+        if (oldText === '') speechTemp += newText;
+        else speechTemp += newText.substring(oldText.length);
+        console.log(speechTemp);
+        checkWords();
+    }
+
+    // 检查是否有句号，用来判断是否回答了完整的一句话
+    function checkWords() {
+        const index = speechTemp.lastIndexOf('。');
+        if (index !== -1) {
+            // console.log('原句: ', speechTemp);
+            const words = speechTemp.substring(0, index + 1);
+            speechQueue.push(words);
+            // console.log(words);
+            console.log('check one words before');
+            console.log(speechTemp);
+            speechTemp = speechTemp.substring(index + 1);
+            console.log('check one words after');
+            console.log(speechTemp);
+        }
+    }
+</script>
+</html>

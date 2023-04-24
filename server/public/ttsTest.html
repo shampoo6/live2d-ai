@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/TTSHelper.js"></script>
+</head>
+<body>
+<input type="text" value="床前明月光，疑似地上霜。">
+<button onclick="start()">start</button>
+</body>
+<script>
+    const inp = document.querySelector('input');
+
+    const ttsHelper = new TTSHelper('./js/ttsWorker.js', 'ws://127.0.0.1/tts');
+
+    function start() {
+        ttsHelper.play('太阳当空照');
+        ttsHelper.play('花儿对我笑');
+        ttsHelper.play(inp.value);
+    }
+</script>
+</html>

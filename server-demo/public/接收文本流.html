@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style>
+        textarea {
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+<textarea class="input" rows="4">
+床前明月光，疑似地上霜，举头望明月，低头思故乡。
+</textarea>
+<button onclick="send()">发送</button>
+<br>
+<textarea class="output" rows="4"></textarea>
+</body>
+<script>
+    const inp = document.querySelector('.input');
+    const out = document.querySelector('.output');
+
+    function send() {
+        const socket = new WebSocket('ws://127.0.0.1/sendWords');
+        socket.addEventListener('open', e => {
+            socket.send(inp.value);
+        });
+        socket.addEventListener('message', e => {
+            console.log('message', e);
+            const data = JSON.parse(e.data);
+            if (data.status !== 2)
+                out.value += data.word;
+            else socket.close();
+        });
+        socket.addEventListener('close', e => {
+            console.log(e);
+        });
+    }
+</script>
+</html>

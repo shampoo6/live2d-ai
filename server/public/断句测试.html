@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/wordsSplit.js"></script>
+</head>
+<body>
+
+</body>
+<!--<script>
+    let text = '当然，我有一些推荐。\n' +
+        '\n' +
+        '如果你想在圣胡安热闹的环境中吃午饭，那么你可以尝试那些在圣胡节期间特别热门的美食，比如：\n' +
+        '\n' +
+        '1. 烤鸭：在圣胡节期间，许多人会选择烤一只家禽，特别是烤鸭，因为鸭是圣胡的传统食物。\n' +
+        '2. 红烧肉：红烧肉是另一道圣胡节期间很热门的美食，它的口感鲜美，非常适合和家人、朋友一起品尝。\n' +
+        '3. 圣胡肉：圣胡肉是圣胡节期间的传统食品之一，它的制作过程比较复杂，需要先制作鸭肉脑酪，再将其打包成小圆形，最后用鸡蛋液进行包裹，捕捉到鸭肉脑酪的口感和香气。\n' +
+        '4. 圣胡鸡肉粉：圣胡鸡肉粉是圣胡节期间比较常见的美食之一，它是将圣胡鸡肉切成细小的鸡肉粉，再用油炸制作出来，味道鲜美。\n' +
+        '\n' +
+        '以上是一些圣胡节期间很受欢迎的食物';
+
+
+    // 上次语音播报的文本
+    let lastSpeechWords = '';
+    // 替换不可见字符用的正则
+    const replaceRegex = /\s/g;
+    // 当文本中出现断句的标识符时，则截取文本并发送给服务器，服务器生成语音在由客户端播放
+    // 判断是否断句的正则
+    const breakWordsRegex = /[?!。？！]/;
+
+    // 处理文本，准备语音播报
+    // function processWords(text) {
+    //     // 截取上次播报内容和本次内容的差量
+    //     let tempWords = text.substring(lastSpeechWords.length);
+    //     const r = tempWords.match(breakWordsRegex);
+    //     // 差量文本中没有断句符号则返回
+    //     if (!r) return;
+    //     lastSpeechWords = text.substring(0, text.lastIndexOf(r[0]) + 1);
+    //     // 差量部分去掉不可见字符
+    //     tempWords = tempWords.replace(replaceRegex, '');
+    //     tempWords = tempWords.substring(0, tempWords.lastIndexOf(r[0]) + 1);
+    //     // 发送文本，开始语音播报
+    //     console.log('start speech: ', tempWords);
+    // }
+
+    // 正在构造一个完整句子的当前文本
+    let currentText = '';
+    // 上次传入 processWords 的参数文本
+    let lastText = '';
+    // 将每次发送的 currentText 组合在一起的以发送的文本
+    let postedText = '';
+
+    function processWords(text) {
+        // 计算增量
+        let str = text.slice(lastText.length);
+        // console.log(str);
+        lastText = text;
+
+        // 从增量中查看断句符号
+        let r = str.match(breakWordsRegex);
+        if (r) {
+            // 存在断句符号则组合成完整句子
+            let tmpStr = str.substring(0, str.lastIndexOf(r[0]) + 1);
+            currentText += tmpStr;
+            postedText += currentText;
+            // 去不可见字符
+            currentText = currentText.replace(replaceRegex, '');
+            // todo 完成一整句话
+            console.log('done: ', currentText);
+            currentText = str.substring(tmpStr.length);
+        } else
+            currentText += str;
+    }
+
+    // text: 结束句子拆分完成后，最后的完整文本
+    function over(text) {
+        // 计算是否有未发送的增量文本
+        let str = text.substring(postedText.length);
+        if (str.length > 0) {
+            // 去不可见字符
+            str = str.replace(replaceRegex, '');
+            // todo 播放增量内容
+            console.log('done: ', str);
+        }
+        currentText = '';
+        lastText = '';
+        postedText = '';
+    }
+
+
+    // 测试
+    let lastIndex = 0;
+    while (lastIndex < text.length) {
+        let randLength = 5 + Math.round(Math.random() * 5);
+        lastIndex += randLength;
+        let str = text.substring(0, lastIndex);
+        // console.log('words: ', str);
+        processWords(str);
+    }
+    over(text);
+</script>-->
+<script>
+    let text = '当然，我有一些推荐。\n' +
+        '\n' +
+        '如果你想在圣胡安热闹的环境中吃午饭，那么你可以尝试那些在圣胡节期间特别热门的美食，比如：\n' +
+        '\n' +
+        '1. 烤鸭：在圣胡节期间，许多人会选择烤一只家禽，特别是烤鸭，因为鸭是圣胡的传统食物。\n' +
+        '2. 红烧肉：红烧肉是另一道圣胡节期间很热门的美食，它的口感鲜美，非常适合和家人、朋友一起品尝。\n' +
+        '3. 圣胡肉：圣胡肉是圣胡节期间的传统食品之一，它的制作过程比较复杂，需要先制作鸭肉脑酪，再将其打包成小圆形，最后用鸡蛋液进行包裹，捕捉到鸭肉脑酪的口感和香气。\n' +
+        '4. 圣胡鸡肉粉：圣胡鸡肉粉是圣胡节期间比较常见的美食之一，它是将圣胡鸡肉切成细小的鸡肉粉，再用油炸制作出来，味道鲜美。\n' +
+        '\n' +
+        '以上是一些圣胡节期间很受欢迎的食物';
+
+    const {processWords, over} = wordsSplit(text => {
+        console.log('play: ', text);
+    });
+
+    // 测试
+    let lastIndex = 0;
+    while (lastIndex < text.length) {
+        let randLength = 5 + Math.round(Math.random() * 5);
+        lastIndex += randLength;
+        let str = text.substring(0, lastIndex);
+        // console.log('words: ', str);
+        processWords(str);
+    }
+    over(text);
+</script>
+</html>
